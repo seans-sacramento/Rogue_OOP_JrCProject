@@ -1,5 +1,9 @@
+using System.Data;
+
 namespace RogueLib.Dungeon;
 
-public class IActor {
-  char Glyph { get; }
+public interface IActor
+{
+    void Update();
+    char Glyph { get; }
 }
