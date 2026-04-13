@@ -54,6 +54,7 @@ public class Level : Scene
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
+        spreadPotion();
     }
 
     private void spreadGold()
@@ -65,6 +66,19 @@ public class Level : Scene
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Gold(pos, rng.Next(100, 200)));
+        }
+    }
+
+    //Added by CB to spread potions around the map
+    private void spreadPotion()
+    {
+        var rng = new Random();
+        var hm = rng.Next(10, 20);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Potion(pos));
         }
     }
 
@@ -146,14 +160,21 @@ public class Level : Scene
     }
 
     // -------------------------------------------------------------------------
-
+    
     private void drawItems(IRenderWindow disp)
     {
         foreach (var item in _items)
         {
             if (_discovered.Contains(item.Pos))
             {
-                disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
+                if (item is Potion) 
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Magenta);
+                }
+                else
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
+                }
             }
         }
     }
