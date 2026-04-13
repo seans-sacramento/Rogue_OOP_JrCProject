@@ -55,6 +55,8 @@ public class Level : Scene
         registerCommandsWithScene();
         spreadGold();
         spreadPotion();
+        spreadWeapon();
+        spreadArmor();        
     }
 
     private void spreadGold()
@@ -73,12 +75,34 @@ public class Level : Scene
     private void spreadPotion()
     {
         var rng = new Random();
-        var hm = rng.Next(10, 20);
+        var hm = rng.Next(5, 10);
 
         for (int i = 0; i < hm; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Potion(pos));
+        }
+    }
+    private void spreadWeapon()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Weapon(pos));
+        }
+    }
+    private void spreadArmor()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Armor(pos));
         }
     }
 
@@ -167,9 +191,18 @@ public class Level : Scene
         {
             if (_discovered.Contains(item.Pos))
             {
-                if (item is Potion) 
+                //A switch statement will go here when more items are added
+                if (item is Potion)
                 {
                     disp.Draw(item.Glyph, item.Pos, ConsoleColor.Magenta);
+                }
+                else if (item is Weapon)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Red);
+                }
+                else if (item is Armor)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.White);
                 }
                 else
                 {
