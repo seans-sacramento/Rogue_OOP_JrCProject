@@ -10,7 +10,7 @@ public abstract class Player : IActor, IDrawable
     public ConsoleColor _color = ConsoleColor.White;
 
     protected int _level = 0;
-    protected int _hp = 12;
+    public int _hp = 12;
     protected int _str = 16;
     protected int _arm = 4;
     protected int _exp = 0;
@@ -18,6 +18,7 @@ public abstract class Player : IActor, IDrawable
     protected int _maxHp = 12;
     protected int _maxStr = 16;
     protected int _turn = 0;
+    public int _healthPotions = 0;
 
     public int Turn => _turn;
 

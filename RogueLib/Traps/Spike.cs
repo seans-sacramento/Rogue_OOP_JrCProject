@@ -8,11 +8,11 @@ namespace SandBox01.Levels;
 
 public class Spike : Trap
 {
-    public int Damage { get; set; }
+    public static int Damage { get; set; } = 1;
 
-    public Spike (Vector2 pos) : base('i', pos)
+    public Spike (Vector2 pos, int damage) : base('i', pos)
     {
-        
+        Damage = damage;
     }
     public override void Draw(IRenderWindow disp)
     {

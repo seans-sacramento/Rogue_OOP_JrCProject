@@ -111,11 +111,14 @@ public class Level : Scene
     {
         var rng = new Random();
         var hm = rng.Next(1, 5);
+        int smallSpikeDmg = 1;
+        int medSpikeDmg = 3;
+        int largeSpikeDmg = 5;
 
         for (int i = 0; i < hm; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-            _traps.Add(new Spike(pos));
+            _traps.Add(new Spike(pos, smallSpikeDmg));
         }
     }
 
@@ -138,11 +141,17 @@ public class Level : Scene
         updateDiscovered();
 
         var item = _items.Find(i => i.Pos == _player!.Pos);
+        var trap = _traps.Find(t => t.Pos == _player!.Pos);
 
         if (item is not null && item is Gold gold)
         {
             _player!._gold += gold.Amount;
-        }        
+        }
+        if (trap is not null && trap is Spike)
+        {
+            _player!._hp -= Spike.Damage;
+        }
+
 
         _player!.Update();
         // foreach item update
