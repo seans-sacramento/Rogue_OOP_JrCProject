@@ -39,6 +39,7 @@ public class Level : Scene
     protected TileSet _inFov;      // current fov of player
 
     protected List<Item> _items;
+    protected List<Trap> _traps;
     public Level(Player p, string map, Game game)
     {
         if (game == null || p == null || map == null)
@@ -49,14 +50,16 @@ public class Level : Scene
         _map = map;
         _game = _game;
         _items = new List<Item>();
+        _traps = new List<Trap>();
 
         initMapTileSets(map);
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
-        spreadPotion();
-        spreadWeapon();
-        spreadArmor();        
+        SpreadPotion();
+        SpreadWeapon();
+        SpreadArmor();
+        SpreadSpikes();
     }
 
     private void spreadGold()
@@ -70,9 +73,8 @@ public class Level : Scene
             _items.Add(new Gold(pos, rng.Next(100, 200)));
         }
     }
-
-    //Added by CB to spread potions around the map
-    private void spreadPotion()
+        
+    private void SpreadPotion()
     {
         var rng = new Random();
         var hm = rng.Next(5, 10);
@@ -83,7 +85,7 @@ public class Level : Scene
             _items.Add(new Potion(pos));
         }
     }
-    private void spreadWeapon()
+    private void SpreadWeapon()
     {
         var rng = new Random();
         var hm = rng.Next(1, 5);
@@ -94,7 +96,7 @@ public class Level : Scene
             _items.Add(new Weapon(pos));
         }
     }
-    private void spreadArmor()
+    private void SpreadArmor()
     {
         var rng = new Random();
         var hm = rng.Next(1, 5);
@@ -103,6 +105,17 @@ public class Level : Scene
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Armor(pos));
+        }
+    }
+    private void SpreadSpikes()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos));
         }
     }
 
@@ -126,10 +139,10 @@ public class Level : Scene
 
         var item = _items.Find(i => i.Pos == _player!.Pos);
 
-        if( item is not null && item is Gold gold)
+        if (item is not null && item is Gold gold)
         {
             _player!._gold += gold.Amount;
-        }
+        }        
 
         _player!.Update();
         // foreach item update
@@ -147,6 +160,7 @@ public class Level : Scene
         disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
 
         drawItems(disp);
+        drawTraps(disp);
 
         var rng = new Random();
         if (_player.Turn % 5 == 0)
@@ -184,7 +198,7 @@ public class Level : Scene
     }
 
     // -------------------------------------------------------------------------
-    
+
     private void drawItems(IRenderWindow disp)
     {
         foreach (var item in _items)
@@ -211,6 +225,25 @@ public class Level : Scene
             }
         }
     }
+    private void drawTraps(IRenderWindow disp)
+    {
+        foreach (var trap in _traps)
+        {
+            if (_discovered.Contains(trap.Pos))
+            {
+                //A switch statement will go here when more traps are added
+                if (trap is Spike)
+                {
+                    disp.Draw(trap.Glyph, trap.Pos, ConsoleColor.White);
+                }
+                else
+                {
+                    disp.Draw(trap.Glyph, trap.Pos, ConsoleColor.Yellow);
+                }
+            }
+        }
+    }
+
 
     private void drawEnemies(IRenderWindow disp) { }
 
