@@ -25,7 +25,7 @@ public class Level : Scene
 {
     // ---- level config ---- 
     protected string? _map;
-    protected int _senseRadius = 4; // change this value to 400 to see the whole map
+    protected int _senseRadius = 400; // change this value to 400 to see the whole map
 
     // --- Tile Sets -----
     // used to keep track of state of tiles on the map
@@ -39,6 +39,16 @@ public class Level : Scene
     protected TileSet _inFov;      // current fov of player
 
     protected List<Item> _items;
+
+    //Daniel Guerrero
+    // _exitPos holds the grid position of the '>' character we placed in the map string.
+    // initMapTileSets reads the map and fills this in automatically.
+    private Vector2 _exitPos;
+
+    // _won becomes true when the player steps on the exit with the Key.
+    // We use it to show the win message and then close the game on the next keypress.
+    private bool _won = false;
+
     public Level(Player p, string map, Game game)
     {
         if (game == null || p == null || map == null)
@@ -54,6 +64,7 @@ public class Level : Scene
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
+        spawnKey(); // place one Key item somewhere on the floor
     }
 
     private void spreadGold()
@@ -66,6 +77,19 @@ public class Level : Scene
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Gold(pos, rng.Next(100, 200)));
         }
+    }
+
+    //Daniel Guerrero
+    // Picks a random floor tile for the Key, making sure it doesn't land on the player.
+    private void spawnKey()
+    {
+        var rng = new Random();
+        Vector2 pos;
+
+        do { pos = _floor.ElementAt(rng.Next(_floor.Count)); }
+        while (pos == _player!.Pos);
+
+        _items.Add(new Key(pos));
     }
 
     protected void updateDiscovered()
@@ -82,20 +106,42 @@ public class Level : Scene
        => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
 
     // -----------------------------------------------------------------------
+    // ⚠️ MERGE CONFLICT RISK: teammates adding NPC logic or death checks will
+    // also edit this method. Our additions are at the bottom of the method
+    // to reduce overlap, but watch for conflicts here when merging.
     public override void Update()
     {
         updateDiscovered();
 
+        // Check if there is any item sitting at the player's current tile.
         var item = _items.Find(i => i.Pos == _player!.Pos);
 
-        if( item is not null && item is Gold gold)
+        if (item is not null && item is Gold gold)
         {
             _player!._gold += gold.Amount;
+            _items!.Remove(gold);
+        }
+
+        //Daniel Guerrero
+        // If the player walked onto the Key, pick it up and remove it from the map.
+        if (item is Key key && _player is Rogue rogue)
+        {
+            rogue.HasKey = true;
+            _items.Remove(key);
+        }
+
+        //Daniel Guerrero
+        // If the player is standing on the exit tile AND has the Key, they win.
+        // We only set _won here. _levelActive is set in DoCommand on the next keypress
+        // so the win message gets one full frame to display before the game closes.
+        if (_player!.Pos == _exitPos && _player is Rogue rogueAtExit && rogueAtExit.HasKey)
+        {
+            _won = true;
         }
 
         _player!.Update();
         // foreach item update
-        // foreach NPC update 
+        // foreach NPC update
         // check for player death -- on death build RIP message
     }
 
@@ -116,13 +162,40 @@ public class Level : Scene
         _player!.Draw(disp);
         // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
 
+        //Daniel Guerrero
+        // Draw the exit as a magenta '>' only after the player has discovered that tile.
+        if (_discovered.Contains(_exitPos))
+            disp.Draw('>', _exitPos, ConsoleColor.Magenta);
+
         drawEnemies(disp);
-        disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
+
+        //Daniel Guerrero
+        // Append [KEY] to the HUD when the player is carrying it.
+        // ⚠️ MERGE CONFLICT RISK: teammates may also edit this HUD line.
+        var keyStatus = (_player is Rogue r && r.HasKey) ? " [KEY]" : "";
+        disp.Draw(_player.HUD + keyStatus, new Vector2(0, 24), ConsoleColor.Green);
+
+        // If the player won, clear the console and draw a win overlay in the center of the screen.
+        if (_won)
+        {
+            Console.Clear();
+            disp.Draw("*** YOU ESCAPED THE DUNGEON! CONGRATULATIONS! ***", new Vector2(14, 11), ConsoleColor.Yellow);
+            disp.Draw("            Press any key to exit.              ",  new Vector2(14, 12), ConsoleColor.Yellow);
+        }
     }
 
     public override void DoCommand(Command command)
     {
-        // player ctl  
+        //Daniel Guerrero
+        // If the player has won, any keypress closes the game.
+        // We don't process movement so the win screen stays visible.
+        if (_won)
+        {
+            _levelActive = false;
+            return;
+        }
+
+        // player ctl
         if (command.Name == "up")
         {
             MovePlayer(Vector2.N);
@@ -138,7 +211,7 @@ public class Level : Scene
         else if (command.Name == "right")
         {
             MovePlayer(Vector2.E);
-        } // game ctl      
+        } // game ctl
         else if (command.Name == "quit")
         {
             _levelActive = false;
@@ -182,6 +255,15 @@ public class Level : Scene
             if (c == '.') _floor.Add(p);
             else if (c == '+') _door.Add(p);
             else if (c == '#') _tunnel.Add(p);
+            else if (c == '>')
+            {
+                //Daniel Guerrero
+                // '>' is the exit tile. We treat it like a floor tile so the player
+                // can walk onto it. We also save its position so we can check it in
+                // Update and draw it with a special color in Draw.
+                _floor.Add(p);
+                _exitPos = p;
+            }
             else if (c != ' ') _decor.Add(p);
         }
 
