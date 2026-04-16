@@ -158,7 +158,7 @@ public class Level : Scene
 
         if (item is not null && item is Gold gold)
         {
-            _player!._gold += gold.Amount;
+            _player!.AddGold(gold.Amount);
         }
         if (trap is not null && trap is Spike)
         {

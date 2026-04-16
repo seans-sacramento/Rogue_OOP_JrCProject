@@ -18,5 +18,5 @@ public class Gold : Item
     public override void Draw(IRenderWindow disp)
     {
         disp.Draw(Glyph, Pos, ConsoleColor.Yellow);
-    }
+    }   
 }
