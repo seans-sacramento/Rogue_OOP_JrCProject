@@ -1,4 +1,5 @@
 ﻿using RogueLib.Dungeon;
+using RogueLib.Traps;
 using RogueLib.Utilities;
 using System;
 using System.Collections.Generic;

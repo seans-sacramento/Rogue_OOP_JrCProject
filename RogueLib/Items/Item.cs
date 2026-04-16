@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using RogueLib.Utilities;
 using System.Text;
+using RogueLib.Dungeon;
 
-namespace RogueLib.Dungeon;
+namespace RogueLib.Items;
 
 public abstract class Item : IDrawable
 {

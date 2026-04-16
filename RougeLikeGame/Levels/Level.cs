@@ -1,5 +1,7 @@
 using RogueLib.Dungeon;
 using RogueLib.Engine;
+using RogueLib.Items;
+using RogueLib.Traps;
 using RogueLib.Utilities;
 using SandBox01.Levels;
 using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
@@ -204,6 +206,11 @@ public class Level : Scene
         {
             _levelActive = false;
         }
+        else if (command.Name == "inventory")
+        {
+            //open inventory
+            //hide map, display inventory            
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -321,6 +328,8 @@ public class Level : Scene
         RegisterCommand(ConsoleKey.L, "right");
 
         RegisterCommand(ConsoleKey.Q, "quit");
+
+        RegisterCommand(ConsoleKey.I, "inventory");
     }
 
 
