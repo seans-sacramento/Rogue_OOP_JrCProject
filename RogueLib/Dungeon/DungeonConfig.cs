@@ -1,32 +1,33 @@
 namespace RogueLib;
 
-public static class DungeonConfig {
-  public const int width  = 78;
-  public const int height = 25;
+public static class DungeonConfig
+{
+    public const int width = 78;
+    public const int height = 25;
 
-  // constants for drawing
-  const char block1 = '░';
-  const char block2 = '▒';
-  const char block3 = '▓';
-  const char block4 = '█';
-  const char block5 = '█';
-  const char vert   = '│';
-  const char hor    = '─';
-  const char tlc    = '┌';
-  const char trc    = '┐';
-  const char blc    = '└';
-  const char brc    = '┘';
+    // constants for drawing
+    const char block1 = '░';
+    const char block2 = '▒';
+    const char block3 = '▓';
+    const char block4 = '█';
+    const char block5 = '█';
+    const char vert = '│';
+    const char hor = '─';
+    const char tlc = '┌';
+    const char trc = '┐';
+    const char blc = '└';
+    const char brc = '┘';
 
-  //   String representation of a possible Dungeon layout.
-  //   " " - solid stone, not walkable, not transparent.
-  //   "." - floor, walkable and transparent
-  //   "#" - tunnel, walkable and transparent
-  //   "+" - door, walkable and transparent
-  //   "|", "-", and any other chars - walls, not walkable, not transparent,
-  //              but discoverable. 
+    //   String representation of a possible Dungeon layout.
+    //   " " - solid stone, not walkable, not transparent.
+    //   "." - floor, walkable and transparent
+    //   "#" - tunnel, walkable and transparent
+    //   "+" - door, walkable and transparent
+    //   "|", "-", and any other chars - walls, not walkable, not transparent,
+    //              but discoverable. 
 
-  public const string map1 =
-      """
+    public const string map1 =
+        """
 
                ┌──────┐          ┌─────────────┐
                │......│        ##+.............│            ┌───────┐
@@ -52,8 +53,8 @@ public static class DungeonConfig {
              ###############
       """;
 
-  static string RIP =
-      """
+    static string RIP =
+        """
 
                     __________
                    /          \
@@ -69,4 +70,38 @@ public static class DungeonConfig {
               *|     *  *  *      | *
       ________)/\\_//(\/(/\)/\//\/|_)_______
       """;
+
+    static string INVENTORY =
+    """
+    │┌─────────────────────────────────────┐│      
+    ││              INVENTORY              ││      
+    ││   ================================  ││      
+    ││                                     ││      
+    ││   1)                                ││      
+    ││   2)                                ││      
+    ││   3)                                ││      
+    ││   4)                                ││      
+    ││   5)                                ││      
+    ││   6)                                ││      
+    ││   7)                                ││      
+    ││   8)                                ││      
+    ││   9)                                ││      
+    ││  10)                                ││      
+    ││  11)                                ││      
+    ││  12)                                ││      
+    ││  13)                                ││      
+    ││  14)                                ││      
+    ││  15)                                ││      
+    ││  16)                                ││      
+    ││  17)                                ││      
+    ││  18)                                ││      
+    ││  19)                                ││      
+    ││  20)                                ││      
+    │└─────────────────────────────────────┘│      
+                                                   
+    """;
+    // made manually using ascii tool:
+    // https://www.asciiart.eu/ascii-draw-studio/app
+    
+
 }

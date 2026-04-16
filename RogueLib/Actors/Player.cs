@@ -7,7 +7,7 @@ public abstract class Player : IActor, IDrawable
     public Vector2 Pos;
     public int Gold {  get; set; }
     public char Glyph => '@';
-    public ConsoleColor _color = ConsoleColor.White;
+    public ConsoleColor _color = ConsoleColor.Green;
 
     protected int _level = 0;
     public int _hp = 12;

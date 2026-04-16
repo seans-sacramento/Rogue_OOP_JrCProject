@@ -174,10 +174,15 @@ public class Level : Scene
         drawTraps(disp);
 
         var rng = new Random();
-        if (_player.Turn % 5 == 0)
-            _player._color = (ConsoleColor)rng.Next(10, 16);
+        //if (_player.Turn % 5 == 0)
+        //    _player._color = (ConsoleColor)rng.Next(10, 16);
         _player!.Draw(disp);
         // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
+
+        // stop character randomization
+        // if _player.Health - 10 _player._color = ConsoleColor.Orange
+        // if _player.Slowed = true blue
+        // if _player.Rage = red
 
         drawEnemies(disp);
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
@@ -209,7 +214,8 @@ public class Level : Scene
         else if (command.Name == "inventory")
         {
             //open inventory
-            //hide map, display inventory            
+            //hide map, display inventory  
+            //considering "overlay" with map
         }
     }
 
@@ -262,6 +268,17 @@ public class Level : Scene
 
 
     private void drawEnemies(IRenderWindow disp) { }
+
+    private void drawInventory(IRenderWindow disp)
+    {
+        //if not inventory mode, close, 
+        //if inventory mode
+        //disp.Draw("const", new Vector2(0, 0), ConsoleColor.White);
+
+        //for each item in inventory, print to screen and display description
+        //name, nquantity
+        //if selected stats
+    }
 
     private void initMapTileSets(string map)
     {

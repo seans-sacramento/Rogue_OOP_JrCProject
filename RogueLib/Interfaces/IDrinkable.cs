@@ -8,6 +8,5 @@ public interface IDrinkable
 {
     //Drink potions, keep open for different item types
 
-    string Name { get; }
     public void Drink();
 }
