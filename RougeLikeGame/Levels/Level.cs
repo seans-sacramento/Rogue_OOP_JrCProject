@@ -122,6 +122,17 @@ public class Level : Scene
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _traps.Add(new Spike(pos, smallSpikeDmg));
         }
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos, medSpikeDmg));
+        }
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos, largeSpikeDmg));
+        }
+
     }
 
     protected void updateDiscovered()
