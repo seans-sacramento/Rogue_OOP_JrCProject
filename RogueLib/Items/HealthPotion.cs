@@ -5,15 +5,17 @@ using RogueLib.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using SandBox01.Levels;
 
 namespace RogueLib.Items;
 
-public abstract class Potion : Item, IDrinkable
+public class HealthPotion : Potion
 {
-    public abstract string PotionType { get; }
-    public int NumberOfCharges { get; set; } = 1;
+    public int HealAmount { get; } = 5;
+    public override string PotionType => "Health Potion";
+  
 
-    public Potion (Vector2 pos) : base('d', pos)
+    public HealthPotion(Vector2 pos) : base( pos)
     {
         
     }
@@ -23,7 +25,7 @@ public abstract class Potion : Item, IDrinkable
     }
     public void Drink()
     {
-       
+
         //if drink do potion effect
         //currently only health potions but can be expanded
         //- potion uses

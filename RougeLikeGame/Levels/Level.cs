@@ -84,7 +84,7 @@ public class Level : Scene
         for (int i = 0; i < hm; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-            _items.Add(new Potion(pos));
+            _items.Add(new HealthPotion(pos));
         }
     }
     private void SpreadWeapon()
@@ -132,7 +132,6 @@ public class Level : Scene
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _traps.Add(new Spike(pos, largeSpikeDmg));
         }
-
     }
 
     protected void updateDiscovered()
@@ -160,9 +159,14 @@ public class Level : Scene
         {
             _player!.AddGold(gold.Amount);
         }
+        if (item is not null && item is Potion)
+        {
+            //magic number, fix later with different potions
+            _player!.AddHealth(5);
+        }
         if (trap is not null && trap is Spike)
         {
-            _player!._hp -= Spike.Damage;
+            _player!.RemoveHealth(Spike.Damage);
         }
 
 

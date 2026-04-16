@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SandBox01.Levels;
+namespace RogueLib.Items;
 
 public class Gold : Item
 {
