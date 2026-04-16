@@ -26,29 +26,34 @@ public class Game {
       _isQuit = false;
    }
 
-   public void run() {
-      // the game loop
-      while (_currentLevel!.IsActive) {
-         // ---------------
-         // draw the level 
-         // ---------------
-         if (_window is null)
-            throw new Exception("Game window not initialized");
+   public void Run() {
 
-         _currentLevel!.Draw(_window);
-         _window!.Display();
+        // the game loop
+        while (_currentLevel!.IsActive)
+        {
+            // ---------------
+            // draw the level 
+            // ---------------
+            if (_window is null)
+                throw new Exception("Game window not initialized");
 
-         // -----------------
-         // handle user input 
-         // -----------------
-         HandleUserInput();
+            _currentLevel!.Draw(_window);
+            _window!.Display();
 
-         // -----------------
-         // update the level
-         // ----------------- 
-         _currentLevel!.Update();
-      }
-   }
+            // -----------------
+            // handle user input 
+            // -----------------
+            HandleUserInput();
+
+            // -----------------
+            // update the level
+            // ----------------- 
+            _currentLevel!.Update();
+        }
+
+
+
+    }
 
 
    protected virtual void HandleUserInput() {

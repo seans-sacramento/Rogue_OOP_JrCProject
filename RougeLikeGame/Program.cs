@@ -11,7 +11,8 @@ class Program {
    static void Main(string[] args) {
       Console.Clear();
       Game game = new MyGame();
-      game.run();
+
+      game.Run();
       
    }
 }
