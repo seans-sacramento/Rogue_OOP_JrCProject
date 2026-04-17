@@ -207,11 +207,15 @@ public class Level : Scene
         //    _player._color = (ConsoleColor)rng.Next(10, 16);
         _player!.Draw(disp);
         // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
+        int lowHealthThreshold = 10;
+        int highHealthThreshold = 11;
 
-        // stop character randomization
-        // if _player.Health - 10 _player._color = ConsoleColor.Orange
+        if (_player.Health <= lowHealthThreshold)
+            _player._color = ConsoleColor.DarkRed;
+        if (_player.Health >= highHealthThreshold)
+            _player._color = ConsoleColor.Green;
+
         // if _player.Slowed = true blue
-        // if _player.Rage = red
 
         drawEnemies(disp);
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
