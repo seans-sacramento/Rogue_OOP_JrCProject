@@ -1,5 +1,7 @@
 using RogueLib.Dungeon;
 using RogueLib.Engine;
+using RogueLib.Items;
+using RogueLib.Traps;
 using RogueLib.Utilities;
 using SandBox01.Levels;
 using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
@@ -39,8 +41,8 @@ public class Level : Scene
     protected TileSet _inFov;      // current fov of player
 
     protected List<Item> _items;
+    protected List<Trap> _traps;
 
-    //Daniel Guerrero
     // _exitPos holds the grid position of the '>' character we placed in the map string.
     // initMapTileSets reads the map and fills this in automatically.
     private Vector2 _exitPos;
@@ -59,12 +61,19 @@ public class Level : Scene
         _map = map;
         _game = _game;
         _items = new List<Item>();
+        _traps = new List<Trap>();
 
         initMapTileSets(map);
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
-        spawnKey(); // place one Key item somewhere on the floor
+        spawnKey();          // place one Key item somewhere on the floor
+        SpreadHealthPotion();
+        SpreadStrengthPotion();
+        SpreadWeapon();
+        SpreadArmor();
+        SpreadSpikes();
+        spawnStairs();
     }
 
     private void spreadGold()
@@ -79,7 +88,6 @@ public class Level : Scene
         }
     }
 
-    //Daniel Guerrero
     // Picks a random floor tile for the Key, making sure it doesn't land on the player.
     private void spawnKey()
     {
@@ -90,6 +98,91 @@ public class Level : Scene
         while (pos == _player!.Pos);
 
         _items.Add(new Key(pos));
+    }
+
+    private void SpreadHealthPotion()
+    {
+        var rng = new Random();
+        var hm = rng.Next(5, 10);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new HealthPotion(pos));
+        }
+    }
+
+    private void SpreadStrengthPotion()
+    {
+        var rng = new Random();
+        var hm = rng.Next(6, 20);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new StrengthPotion(pos));
+        }
+    }
+
+    private void SpreadWeapon()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Weapon(pos));
+        }
+    }
+
+    private void SpreadArmor()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Armor(pos));
+        }
+    }
+
+    private void SpreadSpikes()
+    {
+        var rng = new Random();
+        var hm = rng.Next(1, 5);
+        int smallSpikeDmg = 1;
+        int medSpikeDmg = 3;
+        int largeSpikeDmg = 5;
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos, smallSpikeDmg));
+        }
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos, medSpikeDmg));
+        }
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _traps.Add(new Spike(pos, largeSpikeDmg));
+        }
+    }
+
+    private void spawnStairs()
+    {
+        var rng = new Random();
+        var hm = rng.Next(0, 1);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Stairs(pos));
+        }
     }
 
     protected void updateDiscovered()
@@ -111,18 +204,22 @@ public class Level : Scene
     // to reduce overlap, but watch for conflicts here when merging.
     public override void Update()
     {
+        if (_player!.Health <= 0)
+        {
+            _player.IsDead();
+        }
         updateDiscovered();
 
         // Check if there is any item sitting at the player's current tile.
         var item = _items.Find(i => i.Pos == _player!.Pos);
+        var trap = _traps.Find(t => t.Pos == _player!.Pos);
 
-        if (item is not null && item is Gold gold)
+        if (item is Gold gold)
         {
-            _player!._gold += gold.Amount;
-            _items!.Remove(gold);
+            _player!.AddGold(gold.Amount);
+            _items.Remove(gold);
         }
 
-        //Daniel Guerrero
         // If the player walked onto the Key, pick it up and remove it from the map.
         if (item is Key key && _player is Rogue rogue)
         {
@@ -130,7 +227,28 @@ public class Level : Scene
             _items.Remove(key);
         }
 
-        //Daniel Guerrero
+        if (item is HealthPotion hp)
+        {
+            _player!.AddHealth(hp.HealAmount);
+            _items.Remove(hp);
+        }
+
+        if (item is StrengthPotion str)
+        {
+            _player!.AddStr(str.StrAmount);
+            _items.Remove(str);
+        }
+
+        if (trap is Spike)
+        {
+            _player!.RemoveHealth(Spike.Damage);
+        }
+
+        if (item is Stairs)
+        {
+            //change maps
+        }
+
         // If the player is standing on the exit tile AND has the Key, they win.
         // We only set _won here. _levelActive is set in DoCommand on the next keypress
         // so the win message gets one full frame to display before the game closes.
@@ -155,21 +273,25 @@ public class Level : Scene
         disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
 
         drawItems(disp);
+        drawTraps(disp);
 
         var rng = new Random();
-        if (_player.Turn % 5 == 0)
-            _player._color = (ConsoleColor)rng.Next(10, 16);
         _player!.Draw(disp);
-        // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
 
-        //Daniel Guerrero
+        int lowHealthThreshold = 10;
+        int highHealthThreshold = 11;
+
+        if (_player.Health <= lowHealthThreshold)
+            _player._color = ConsoleColor.DarkRed;
+        if (_player.Health >= highHealthThreshold)
+            _player._color = ConsoleColor.Green;
+
         // Draw the exit as a magenta '>' only after the player has discovered that tile.
         if (_discovered.Contains(_exitPos))
             disp.Draw('>', _exitPos, ConsoleColor.Magenta);
 
         drawEnemies(disp);
 
-        //Daniel Guerrero
         // Append [KEY] to the HUD when the player is carrying it.
         // ⚠️ MERGE CONFLICT RISK: teammates may also edit this HUD line.
         var keyStatus = (_player is Rogue r && r.HasKey) ? " [KEY]" : "";
@@ -180,13 +302,12 @@ public class Level : Scene
         {
             Console.Clear();
             disp.Draw("*** YOU ESCAPED THE DUNGEON! CONGRATULATIONS! ***", new Vector2(14, 11), ConsoleColor.Yellow);
-            disp.Draw("            Press any key to exit.              ",  new Vector2(14, 12), ConsoleColor.Yellow);
+            disp.Draw("            Press any key to exit.              ", new Vector2(14, 12), ConsoleColor.Yellow);
         }
     }
 
     public override void DoCommand(Command command)
     {
-        //Daniel Guerrero
         // If the player has won, any keypress closes the game.
         // We don't process movement so the win screen stays visible.
         if (_won)
@@ -216,6 +337,12 @@ public class Level : Scene
         {
             _levelActive = false;
         }
+        else if (command.Name == "inventory")
+        {
+            //open inventory
+            //hide map, display inventory  
+            //considering "overlay" with map
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -226,12 +353,64 @@ public class Level : Scene
         {
             if (_discovered.Contains(item.Pos))
             {
-                disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
+                if (item is StrengthPotion)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Blue);
+                }
+                else if (item is HealthPotion)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Red);
+                }
+                else if (item is Potion)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Magenta);
+                }
+                else if (item is Weapon)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Red);
+                }
+                else if (item is Armor)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.White);
+                }
+                else
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
+                }
+            }
+        }
+    }
+
+    private void drawTraps(IRenderWindow disp)
+    {
+        foreach (var trap in _traps)
+        {
+            if (_discovered.Contains(trap.Pos))
+            {
+                if (trap is Spike)
+                {
+                    disp.Draw(trap.Glyph, trap.Pos, ConsoleColor.White);
+                }
+                else
+                {
+                    disp.Draw(trap.Glyph, trap.Pos, ConsoleColor.Yellow);
+                }
             }
         }
     }
 
     private void drawEnemies(IRenderWindow disp) { }
+
+    private void drawInventory(IRenderWindow disp)
+    {
+        //if not inventory mode, close, 
+        //if inventory mode
+        //disp.Draw("const", new Vector2(0, 0), ConsoleColor.White);
+
+        //for each item in inventory, print to screen and display description
+        //name, quantity
+        //if selected stats
+    }
 
     private void initMapTileSets(string map)
     {
@@ -257,7 +436,6 @@ public class Level : Scene
             else if (c == '#') _tunnel.Add(p);
             else if (c == '>')
             {
-                //Daniel Guerrero
                 // '>' is the exit tile. We treat it like a floor tile so the player
                 // can walk onto it. We also save its position so we can check it in
                 // Update and draw it with a special color in Draw.
@@ -268,25 +446,11 @@ public class Level : Scene
         }
 
         _walkables = _floor.Union(_tunnel).Union(_door).ToHashSet();
-
-        //      for (int row = 0; row < lines.Length; ++row) {
-        //         for (int col = 0; col < lines[row].Length; ++col) {
-        //            char tile = lines[row][col];
-        //
-        //            if (tile == '.' || tile == '+' || tile == '#') {
-        //               _walkables.Add(new Vector2(col, row));
-        //               _decor.Add(new Vector2(col, row));
-        //            } else if (tile != ' ') {
-        //               _decor.Add(new Vector2(col, row));
-        //            }
-        //         }
-        //      }
     }
 
     // ------------------------------------------------------
     // Commands 
     // ------------------------------------------------------
-
 
     private void registerCommandsWithScene()
     {
@@ -307,8 +471,9 @@ public class Level : Scene
         RegisterCommand(ConsoleKey.L, "right");
 
         RegisterCommand(ConsoleKey.Q, "quit");
-    }
 
+        RegisterCommand(ConsoleKey.I, "inventory");
+    }
 
     public void MovePlayer(Vector2 delta)
     {

@@ -7,16 +7,17 @@ using System.Text;
 
 namespace RogueLib.Items;
 
-public class Gold : Item
+public class Armor : Item
 {
-    public int Amount { get; init; }
+    public string ArmorType { get; init; }
+    public int Defense { get; set; }
 
-    public Gold (Vector2 pos, int amount) : base('*', pos)
+    public Armor (Vector2 pos) : base('T', pos)
     {
-        Amount = amount;
+        
     }
     public override void Draw(IRenderWindow disp)
     {
-        disp.Draw(Glyph, Pos, ConsoleColor.Yellow);
-    }   
+        disp.Draw(Glyph, Pos, ConsoleColor.White);
+    }
 }
