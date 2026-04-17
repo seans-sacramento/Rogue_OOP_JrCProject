@@ -25,22 +25,21 @@ public class Level : Scene
 {
     // ---- level config ---- 
     protected string? _map;
-    protected int _senseRadius = 400; // change this value to 400 to see the whole map
+    protected int _senseRadius = 400;
 
     // --- Tile Sets -----
-    // used to keep track of state of tiles on the map
-    protected TileSet _walkables; // walkable tiles 
+    protected TileSet _walkables;
     protected TileSet _floor;
     protected TileSet _tunnel;
     protected TileSet _door;
-    protected TileSet _decor; // walls and other decorations, always visible once discovered
+    protected TileSet _decor;
 
-    protected TileSet _discovered; // tiles the player has seen
-    protected TileSet _inFov;      // current fov of player
+    protected TileSet _discovered;
+    protected TileSet _inFov;
 
     protected List<Item> _items;
+    protected List<Enemy> _enemies;
 
-    //Daniel Guerrero
     // _exitPos holds the grid position of the '>' character we placed in the map string.
     // initMapTileSets reads the map and fills this in automatically.
     private Vector2 _exitPos;
@@ -49,23 +48,31 @@ public class Level : Scene
     // We use it to show the win message and then close the game on the next keypress.
     private bool _won = false;
 
+    // -----------------------------------------------------------------------
+
     public Level(Player p, string map, Game game)
     {
         if (game == null || p == null || map == null)
             throw new ArgumentNullException("game, player, or map cannot be null");
 
         _player = p;
-        _player.Pos = new Vector2(4, 12); // random, or at stairs
+        _player.Pos = new Vector2(4, 12);
         _map = map;
-        _game = _game;
+        _game = game;
         _items = new List<Item>();
+        _enemies = new List<Enemy>();
 
         initMapTileSets(map);
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
-        spawnKey(); // place one Key item somewhere on the floor
+        spawnKey();       // place one Key item somewhere on the floor
+        spreadEnemies();
     }
+
+    // -----------------------------------------------------------------------
+    // Spreading
+    // -----------------------------------------------------------------------
 
     private void spreadGold()
     {
@@ -79,7 +86,6 @@ public class Level : Scene
         }
     }
 
-    //Daniel Guerrero
     // Picks a random floor tile for the Key, making sure it doesn't land on the player.
     private void spawnKey()
     {
@@ -92,37 +98,51 @@ public class Level : Scene
         _items.Add(new Key(pos));
     }
 
-    protected void updateDiscovered()
+    private void spreadEnemies()
     {
-        _inFov = fovCalc(_player!.Pos, _senseRadius);
+        var rng = new Random();
+        var tiles = _floor.ToList();
 
-        if (_discovered is null)
-            _discovered = new TileSet();
+        // spawn orcs
+        for (int i = 0; i < 4; i++)
+        {
+            var pos = tiles[rng.Next(tiles.Count)];
+            if (_walkables.Contains(pos))
+            {
+                _enemies.Add(new Orc(pos));
+                _walkables.Remove(pos);
+            }
+        }
 
-        _discovered.UnionWith(_inFov);
+        // spawn trolls
+        for (int i = 0; i < 2; i++)
+        {
+            var pos = tiles[rng.Next(tiles.Count)];
+            if (_walkables.Contains(pos))
+            {
+                _enemies.Add(new Troll(pos));
+                _walkables.Remove(pos);
+            }
+        }
     }
 
-    protected TileSet fovCalc(Vector2 pos, int sens)
-       => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
-
     // -----------------------------------------------------------------------
-    // ⚠️ MERGE CONFLICT RISK: teammates adding NPC logic or death checks will
-    // also edit this method. Our additions are at the bottom of the method
-    // to reduce overlap, but watch for conflicts here when merging.
+    // Update
+    // -----------------------------------------------------------------------
+
     public override void Update()
     {
         updateDiscovered();
 
-        // Check if there is any item sitting at the player's current tile.
+        // --- item pickup ---
         var item = _items.Find(i => i.Pos == _player!.Pos);
 
-        if (item is not null && item is Gold gold)
+        if (item is Gold gold)
         {
-            _player!._gold += gold.Amount;
-            _items!.Remove(gold);
+            _player!.AddGold(gold.Amount);
+            _items.Remove(gold);
         }
 
-        //Daniel Guerrero
         // If the player walked onto the Key, pick it up and remove it from the map.
         if (item is Key key && _player is Rogue rogue)
         {
@@ -130,7 +150,6 @@ public class Level : Scene
             _items.Remove(key);
         }
 
-        //Daniel Guerrero
         // If the player is standing on the exit tile AND has the Key, they win.
         // We only set _won here. _levelActive is set in DoCommand on the next keypress
         // so the win message gets one full frame to display before the game closes.
@@ -140,14 +159,34 @@ public class Level : Scene
         }
 
         _player!.Update();
-        // foreach item update
-        // foreach NPC update
-        // check for player death -- on death build RIP message
+
+        // --- enemy turns ---
+        foreach (var enemy in _enemies)
+        {
+            if (enemy.Alive)
+            {
+                enemy.Update();
+                enemy.Move(_walkables, _player.Pos);
+            }
+        }
+
+        // free tiles of dead enemies and remove them
+        foreach (var dead in _enemies.Where(e => !e.Alive))
+            _walkables.Add(dead.Pos);
+
+        _enemies.RemoveAll(e => !e.Alive);
+
+        // --- player death ---
+        if (!_player.Alive)
+            _levelActive = false;
     }
+
+    // -----------------------------------------------------------------------
+    // Draw
+    // -----------------------------------------------------------------------
 
     public override void Draw(IRenderWindow? disp)
     {
-        // using custom RenderWindow, cast to my RenderWindow
         var tilesToDraw = new TileSet(_decor);
         tilesToDraw.IntersectWith(_discovered);
         tilesToDraw.UnionWith(_inFov);
@@ -159,34 +198,34 @@ public class Level : Scene
         var rng = new Random();
         if (_player.Turn % 5 == 0)
             _player._color = (ConsoleColor)rng.Next(10, 16);
-        _player!.Draw(disp);
-        // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
 
-        //Daniel Guerrero
+        _player!.Draw(disp);
+
         // Draw the exit as a magenta '>' only after the player has discovered that tile.
         if (_discovered.Contains(_exitPos))
             disp.Draw('>', _exitPos, ConsoleColor.Magenta);
 
         drawEnemies(disp);
 
-        //Daniel Guerrero
         // Append [KEY] to the HUD when the player is carrying it.
-        // ⚠️ MERGE CONFLICT RISK: teammates may also edit this HUD line.
         var keyStatus = (_player is Rogue r && r.HasKey) ? " [KEY]" : "";
         disp.Draw(_player.HUD + keyStatus, new Vector2(0, 24), ConsoleColor.Green);
 
-        // If the player won, clear the console and draw a win overlay in the center of the screen.
+        // If the player won, clear the console and draw a win overlay.
         if (_won)
         {
             Console.Clear();
             disp.Draw("*** YOU ESCAPED THE DUNGEON! CONGRATULATIONS! ***", new Vector2(14, 11), ConsoleColor.Yellow);
-            disp.Draw("            Press any key to exit.              ",  new Vector2(14, 12), ConsoleColor.Yellow);
+            disp.Draw("            Press any key to exit.              ", new Vector2(14, 12), ConsoleColor.Yellow);
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Commands
+    // -----------------------------------------------------------------------
+
     public override void DoCommand(Command command)
     {
-        //Daniel Guerrero
         // If the player has won, any keypress closes the game.
         // We don't process movement so the win screen stays visible.
         if (_won)
@@ -195,98 +234,12 @@ public class Level : Scene
             return;
         }
 
-        // player ctl
-        if (command.Name == "up")
-        {
-            MovePlayer(Vector2.N);
-        }
-        else if (command.Name == "down")
-        {
-            MovePlayer(Vector2.S);
-        }
-        else if (command.Name == "left")
-        {
-            MovePlayer(Vector2.W);
-        }
-        else if (command.Name == "right")
-        {
-            MovePlayer(Vector2.E);
-        } // game ctl
-        else if (command.Name == "quit")
-        {
-            _levelActive = false;
-        }
+        if (command.Name == "up") MovePlayer(Vector2.N);
+        else if (command.Name == "down") MovePlayer(Vector2.S);
+        else if (command.Name == "left") MovePlayer(Vector2.W);
+        else if (command.Name == "right") MovePlayer(Vector2.E);
+        else if (command.Name == "quit") _levelActive = false;
     }
-
-    // -------------------------------------------------------------------------
-
-    private void drawItems(IRenderWindow disp)
-    {
-        foreach (var item in _items)
-        {
-            if (_discovered.Contains(item.Pos))
-            {
-                disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
-            }
-        }
-    }
-
-    private void drawEnemies(IRenderWindow disp) { }
-
-    private void initMapTileSets(string map)
-    {
-        var lines = map.Split('\n');
-
-        // ------ rules for map ------
-        // . - floor, walkable and transparent.
-        // + - door, walkable and transparent // # - tunnel, walkable and transparent
-        // ' ' - solid stone, not walkable, not transparent.
-        // '|' - wall, not walkable, not transparent, but discoverable.'
-        //  others are treated the same as wall.
-        // tunnel, wall, and doorways are decor, once discovered they are visible.
-
-        _floor = new TileSet();
-        _tunnel = new TileSet();
-        _door = new TileSet();
-        _decor = new TileSet();
-
-        foreach (var (c, p) in Vector2.Parse(map))
-        {
-            if (c == '.') _floor.Add(p);
-            else if (c == '+') _door.Add(p);
-            else if (c == '#') _tunnel.Add(p);
-            else if (c == '>')
-            {
-                //Daniel Guerrero
-                // '>' is the exit tile. We treat it like a floor tile so the player
-                // can walk onto it. We also save its position so we can check it in
-                // Update and draw it with a special color in Draw.
-                _floor.Add(p);
-                _exitPos = p;
-            }
-            else if (c != ' ') _decor.Add(p);
-        }
-
-        _walkables = _floor.Union(_tunnel).Union(_door).ToHashSet();
-
-        //      for (int row = 0; row < lines.Length; ++row) {
-        //         for (int col = 0; col < lines[row].Length; ++col) {
-        //            char tile = lines[row][col];
-        //
-        //            if (tile == '.' || tile == '+' || tile == '#') {
-        //               _walkables.Add(new Vector2(col, row));
-        //               _decor.Add(new Vector2(col, row));
-        //            } else if (tile != ' ') {
-        //               _decor.Add(new Vector2(col, row));
-        //            }
-        //         }
-        //      }
-    }
-
-    // ------------------------------------------------------
-    // Commands 
-    // ------------------------------------------------------
-
 
     private void registerCommandsWithScene()
     {
@@ -309,17 +262,33 @@ public class Level : Scene
         RegisterCommand(ConsoleKey.Q, "quit");
     }
 
+    // -----------------------------------------------------------------------
+    // Movement + bump combat
+    // -----------------------------------------------------------------------
 
     public void MovePlayer(Vector2 delta)
     {
         var newPos = _player!.Pos + delta;
 
+        // --- bump combat: player walks into an enemy ---
+        var target = _enemies.Find(e => e.Alive && e.Pos == newPos);
+        if (target != null)
+        {
+            target.ReceiveAttackFromPlayer(_player);
+
+            if (target.Alive)
+                _player.TakeDamage(target.AttackPlayer(_player));
+
+            return;  // bump = attack, not a step
+        }
+
+        // --- normal movement ---
         if (_walkables.Contains(newPos))
         {
             var oldPos = _player!.Pos;
             _player!.Pos = newPos;
-            _walkables.Remove(newPos); // new tile is now occupied
-            _walkables.Add(oldPos);    // old tile is now free
+            _walkables.Remove(newPos);
+            _walkables.Add(oldPos);
         }
     }
 
@@ -327,4 +296,81 @@ public class Level : Scene
     {
         _levelActive = false;
     }
+
+    // -----------------------------------------------------------------------
+    // Private draw helpers
+    // -----------------------------------------------------------------------
+
+    private void drawItems(IRenderWindow disp)
+    {
+        foreach (var item in _items)
+        {
+            if (_discovered.Contains(item.Pos))
+                disp.Draw(item.Glyph, item.Pos, ConsoleColor.Yellow);
+        }
+    }
+
+    private void drawEnemies(IRenderWindow disp)
+    {
+        foreach (var enemy in _enemies)
+        {
+            if (enemy.Alive && _inFov.Contains(enemy.Pos))
+                enemy.Draw(disp);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Map initialisation
+    // -----------------------------------------------------------------------
+
+    private void initMapTileSets(string map)
+    {
+        // ------ rules for map ------
+        // . - floor, walkable and transparent.
+        // + - door, walkable and transparent.
+        // # - tunnel, walkable and transparent.
+        // ' ' - solid stone, not walkable, not transparent.
+        // '|' - wall, not walkable, not transparent, but discoverable.
+        //  others are treated the same as wall.
+        // tunnel, wall, and doorways are decor � once discovered they stay visible.
+
+        _floor = new TileSet();
+        _tunnel = new TileSet();
+        _door = new TileSet();
+        _decor = new TileSet();
+
+        foreach (var (c, p) in Vector2.Parse(map))
+        {
+            if (c == '.') _floor.Add(p);
+            else if (c == '+') _door.Add(p);
+            else if (c == '#') _tunnel.Add(p);
+            else if (c == '>')
+            {
+                // '>' is the exit tile. Treated as floor so the player can walk onto it.
+                // Position saved so Update and Draw can reference it.
+                _floor.Add(p);
+                _exitPos = p;
+            }
+            else if (c != ' ') _decor.Add(p);
+        }
+
+        _walkables = _floor.Union(_tunnel).Union(_door).ToHashSet();
+    }
+
+    // -----------------------------------------------------------------------
+    // FOV
+    // -----------------------------------------------------------------------
+
+    protected void updateDiscovered()
+    {
+        _inFov = fovCalc(_player!.Pos, _senseRadius);
+
+        if (_discovered is null)
+            _discovered = new TileSet();
+
+        _discovered.UnionWith(_inFov);
+    }
+
+    protected TileSet fovCalc(Vector2 pos, int sens)
+        => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
 }
