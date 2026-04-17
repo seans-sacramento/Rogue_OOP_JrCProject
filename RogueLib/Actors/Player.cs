@@ -77,4 +77,8 @@ public abstract class Player : IActor, IDrawable
     {
         _str -= amount;
     }
+    public void IsDead()
+    {
+        Console.WriteLine("You dead");
+    }
 }

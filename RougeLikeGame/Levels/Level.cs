@@ -161,6 +161,10 @@ public class Level : Scene
     // -----------------------------------------------------------------------
     public override void Update()
     {
+        if (_player!.Health <= 0)
+        {
+            _player.IsDead();
+        }
         updateDiscovered();
 
         var item = _items.Find(i => i.Pos == _player!.Pos);
