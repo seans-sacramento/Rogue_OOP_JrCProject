@@ -79,13 +79,18 @@ public abstract class Player : IActor, IDrawable
         _str -= amount;
     }
     public void IsDead()
-    {
-        //call rip from dungeon config pass player name and level
+    {       
         Console.Clear();
-        Console.WriteLine(DungeonConfig.RIP(Name, _gold, _level, _exp, _str));        
-        Console.WriteLine("You dead");
-        Draw(new ScreenBuff());
-        Console.ReadKey();
-        Environment.Exit(0);
+        Console.WriteLine(DungeonConfig.RIP(Name, _gold, _level, _exp, _str));
+        Console.WriteLine("Would you like to play again? (Y/N)");
+        string userResponse = Console.ReadLine().Trim();
+        if ((userResponse == "Y") || userResponse == "y")
+        {
+            //restart game
+        }
+        else
+        {
+            Environment.Exit(0);
+        }
     }
 }

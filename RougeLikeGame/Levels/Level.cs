@@ -63,6 +63,7 @@ public class Level : Scene
         SpreadWeapon();
         SpreadArmor();
         SpreadSpikes();
+        spawnStairs();
     }
 
     private void spreadGold()
@@ -153,6 +154,7 @@ public class Level : Scene
         for (int i = 0; i < hm; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Stairs(pos));
         }
     }
     protected void updateDiscovered()
@@ -195,6 +197,10 @@ public class Level : Scene
         if (trap is not null && trap is Spike)
         {
             _player!.RemoveHealth(Spike.Damage);
+        }
+        if (trap is not null && item is Stairs)
+        {
+            //change maps
         }
 
 

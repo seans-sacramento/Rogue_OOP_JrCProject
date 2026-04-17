@@ -1,5 +1,5 @@
 ﻿using RogueLib.Dungeon;
-using RogueLib.Items;
+using RogueLib.Traps;
 using RogueLib.Utilities;
 using System;
 using System.Collections.Generic;
@@ -9,11 +9,11 @@ namespace RogueLib.Items;
 
 public class Stairs: Item
 {
-    public int Amount { get; init; }
+    
 
-    public Stairs (Vector2 pos, int amount) : base('=', pos)
+    public Stairs (Vector2 pos) : base('=', pos)
     {
-        Amount = amount;
+      
     }
     public override void Draw(IRenderWindow disp)
     {
