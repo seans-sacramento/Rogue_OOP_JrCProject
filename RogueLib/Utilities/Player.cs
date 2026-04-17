@@ -5,7 +5,7 @@ public abstract class Player : IActor, IDrawable
 {
     public string Name { get; set; }
     public Vector2 Pos;
-    public int Gold {  get; set; }
+    public int Gold { get; set; }
     public char Glyph => '@';
     public ConsoleColor _color = ConsoleColor.White;
 
@@ -14,12 +14,16 @@ public abstract class Player : IActor, IDrawable
     protected int _str = 16;
     protected int _arm = 4;
     protected int _exp = 0;
-    public int _gold = 0;
+    protected int _gold = 0;
     protected int _maxHp = 12;
     protected int _maxStr = 16;
     protected int _turn = 0;
 
+    // ---- public read access for Level and Enemy ----
     public int Turn => _turn;
+    public int Str => _str;
+    public int Arm => _arm;
+    public bool Alive => _hp > 0;
 
     public Player()
     {
@@ -32,6 +36,16 @@ public abstract class Player : IActor, IDrawable
        $"  Str: {_str}({_maxStr})" +
        $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
 
+    // ---- public methods for Level to call ----
+
+    public void AddGold(int amount) => _gold += amount;
+
+    public void TakeDamage(int amount)
+    {
+        int dmg = Math.Max(1, amount - (_arm / 2));
+        _hp -= dmg;
+        if (_hp < 0) _hp = 0;
+    }
 
     public virtual void Update()
     {
