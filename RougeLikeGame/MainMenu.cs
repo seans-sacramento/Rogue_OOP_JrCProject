@@ -8,21 +8,18 @@ using RogueLib.Engine;
 
 namespace SandBox01.UI
 {
-    internal class MainMenu
+    public static class MainMenu
     {
-        MainMenu()
-        {
-            init();
-            //Console.Clear(); ill test if this works as intended or not after i check if the normall rules/intro is implemented or not
-        }
 
-        private void init()
+
+        public static void init()
         {
             ShowIntroduction();
             ShowRules();
+            Console.Clear();
         }
 
-        private void ShowIntroduction()
+        static void ShowIntroduction()
         {
             Console.WriteLine(@"
             Greetings, fellow traveller!
@@ -41,14 +38,38 @@ namespace SandBox01.UI
             Console.ReadKey();
         }
 
-        private void ShowRules()
+        static void ShowRules()
         {
+
+            /*
+             * Walkable tiles: . 
+             * Hallways: #
+             * 
+             * Gold: *
+             * Key: !
+             */
+
+            Console.Clear();
+
+
             Console.WriteLine(@"
             ***************RogueLike Rules***************     
             *                                           *
+            *   Avoid enemies                           *
+            *   Collect coins                           *
+            *   Find the key to escape the level        *
             *                                           *
+            *****             Game Index            *****
+            *   Gold: *                                 *
+            *   Key: !                                  *
+            *   Walkable Floor: .                       *
+            *   Hallway: #                              *
             *                                           *
+            *  Press any key to continue to the game.   *
+            *********************************************
             ");
+
+            Console.ReadKey();
         }
     }
 }
