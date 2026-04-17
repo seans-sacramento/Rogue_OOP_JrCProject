@@ -7,7 +7,6 @@ namespace RlGameNS;
 
 
 class Program {
-
    static void Main(string[] args) {
       Console.Clear();
       Game game = new MyGame();

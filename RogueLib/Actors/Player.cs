@@ -6,7 +6,6 @@ public abstract class Player : IActor, IDrawable
 {
     public string Name { get; set; }
     public Vector2 Pos;
-    //making gold more secure, do same with health and str
     public int Gold => _gold;
     public int Health => _hp;
     public char Glyph => '@';
@@ -32,9 +31,9 @@ public abstract class Player : IActor, IDrawable
     }
 
     public string HUD =>
-       $"Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
+       $"Gold: {_gold} Hp: {_hp}({_maxHp})" +
        $"  Str: {_str}({_maxStr})" +
-       $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
+       $"  Arm: {_arm}  Turn: {_turn}";
 
 
     public virtual void Update()
