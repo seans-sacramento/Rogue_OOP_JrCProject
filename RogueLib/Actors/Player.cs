@@ -1,3 +1,4 @@
+using RogueLib;
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
 
@@ -79,6 +80,12 @@ public abstract class Player : IActor, IDrawable
     }
     public void IsDead()
     {
+        //call rip from dungeon config pass player name and level
+        Console.Clear();
+        Console.WriteLine(DungeonConfig.RIP);
         Console.WriteLine("You dead");
+        Draw(new ScreenBuff());
+        Console.ReadKey();
+        Environment.Exit(0);
     }
 }

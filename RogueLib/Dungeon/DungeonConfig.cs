@@ -77,8 +77,8 @@ public static class DungeonConfig
                                                               
       """;
 
-    static string RIP =
-        """
+    public static string RIP =
+        $"""
 
                     __________
                    /          \
@@ -95,8 +95,8 @@ public static class DungeonConfig
       ________)/\\_//(\/(/\)/\//\/|_)_______
       """;
 
-    static string INVENTORY =
-    """
+    public static string INVENTORY =
+    $"""
     │┌─────────────────────────────────────┐│      
     ││              INVENTORY              ││      
     ││   ================================  ││      
