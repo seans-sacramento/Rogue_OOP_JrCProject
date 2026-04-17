@@ -1,0 +1,22 @@
+﻿using RogueLib.Dungeon;
+using RogueLib.Items;
+using RogueLib.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RogueLib.Items;
+
+public class Stairs: Item
+{
+    public int Amount { get; init; }
+
+    public Stairs (Vector2 pos, int amount) : base('=', pos)
+    {
+        Amount = amount;
+    }
+    public override void Draw(IRenderWindow disp)
+    {
+        disp.Draw(Glyph, Pos, ConsoleColor.Yellow);
+    }   
+}

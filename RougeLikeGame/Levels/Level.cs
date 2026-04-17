@@ -145,6 +145,16 @@ public class Level : Scene
             _traps.Add(new Spike(pos, largeSpikeDmg));
         }
     }
+    private void spawnStairs()
+    {
+        var rng = new Random();
+        var hm = rng.Next(0, 1);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+        }
+    }
     protected void updateDiscovered()
     {
         _inFov = fovCalc(_player!.Pos, _senseRadius);

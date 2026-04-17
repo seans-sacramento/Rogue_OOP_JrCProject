@@ -82,7 +82,7 @@ public abstract class Player : IActor, IDrawable
     {
         //call rip from dungeon config pass player name and level
         Console.Clear();
-        Console.WriteLine(DungeonConfig.RIP);
+        Console.WriteLine(DungeonConfig.RIP(Name, _gold, _level, _exp, _str));        
         Console.WriteLine("You dead");
         Draw(new ScreenBuff());
         Console.ReadKey();

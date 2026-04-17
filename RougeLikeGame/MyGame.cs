@@ -18,7 +18,7 @@ public class MyGame : Game {
       
       _window       = new ScreenBuff();
       _player       = new Rogue();
-      _currentLevel = new Level(_player, DungeonConfig.map2, this);      
+      _currentLevel = new Level(_player, DungeonConfig.map3, this);      
    }
 
    public MyGame() {
