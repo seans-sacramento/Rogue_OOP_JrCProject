@@ -58,7 +58,8 @@ public class Level : Scene
         updateDiscovered();
         registerCommandsWithScene();
         spreadGold();
-        SpreadPotion();
+        SpreadHealthPotion();
+        SpreadStrengthPotion();
         SpreadWeapon();
         SpreadArmor();
         SpreadSpikes();
@@ -76,7 +77,7 @@ public class Level : Scene
         }
     }
         
-    private void SpreadPotion()
+    private void SpreadHealthPotion()
     {
         var rng = new Random();
         var hm = rng.Next(5, 10);
@@ -85,6 +86,17 @@ public class Level : Scene
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new HealthPotion(pos));
+        }
+    }
+    private void SpreadStrengthPotion()
+    {
+        var rng = new Random();
+        var hm = rng.Next(6, 20);
+
+        for (int i = 0; i < hm; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new StrengthPotion(pos));
         }
     }
     private void SpreadWeapon()
@@ -133,7 +145,6 @@ public class Level : Scene
             _traps.Add(new Spike(pos, largeSpikeDmg));
         }
     }
-
     protected void updateDiscovered()
     {
         _inFov = fovCalc(_player!.Pos, _senseRadius);
@@ -159,10 +170,13 @@ public class Level : Scene
         {
             _player!.AddGold(gold.Amount);
         }
-        if (item is not null && item is Potion)
+        if (item is not null && item is HealthPotion hp)
         {
-            //magic number, fix later with different potions
-            _player!.AddHealth(5);
+           _player!.AddHealth(hp.HealAmount);
+        }
+        if (item is not null && item is StrengthPotion str)
+        {
+            _player!.AddStr(str.StrAmount);
         }
         if (trap is not null && trap is Spike)
         {
@@ -243,7 +257,15 @@ public class Level : Scene
             if (_discovered.Contains(item.Pos))
             {
                 //A switch statement will go here when more items are added
-                if (item is Potion)
+                if (item is StrengthPotion)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Blue);
+                }
+                else if (item is HealthPotion)
+                {
+                    disp.Draw(item.Glyph, item.Pos, ConsoleColor.Red);
+                }
+                else if (item is Potion)
                 {
                     disp.Draw(item.Glyph, item.Pos, ConsoleColor.Magenta);
                 }
