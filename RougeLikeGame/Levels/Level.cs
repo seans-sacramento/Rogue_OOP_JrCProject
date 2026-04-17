@@ -217,6 +217,7 @@ public class Level : Scene
             Console.Clear();
             disp.Draw("*** YOU ESCAPED THE DUNGEON! CONGRATULATIONS! ***", new Vector2(14, 11), ConsoleColor.Yellow);
             disp.Draw("            Press any key to exit.              ", new Vector2(14, 12), ConsoleColor.Yellow);
+            QuitLevel();
         }
     }
 
